@@ -6,6 +6,7 @@ import { userMiddleware } from "./database/middleware";
 import { JWT_SECRET, SignupType } from "./database/config";
 import router from "./database/routes/user";
 import jwt from "jsonwebtoken"
+import cors from "cors"
 
 const app = express()
 const server = http.createServer(app); // Create HTTP server
@@ -47,6 +48,7 @@ wss.on("connection", (socket)=>{
 
 app.use(express.json())
 app.use('/user', router)
+app.use(cors())
 
 app.post('/signup', async (req,res)=>{
     const {username, password} = SignupType.parse(req.body)
@@ -78,6 +80,14 @@ app.get('/dashboard', userMiddleware, async(req,res)=>{
     const user = await userModel.findOne({_id: req.userId});
     res.json({
         user
+    })
+})
+
+app.get('/bulk', userMiddleware, async(req,res)=>{
+    const users = (await userModel.find()).filter((u) => u._id.toString() !== req.userId);
+
+    res.json({
+        users
     })
 })
 

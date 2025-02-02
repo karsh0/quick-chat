@@ -9,7 +9,6 @@ export function userMiddleware(req: Request,res: Response,next: NextFunction){
         return;
     }
     const decoded = jwt.verify(token as string, JWT_SECRET);
-    console.log(decoded)
     if((decoded as JwtPayload).userId){
         req.userId = (decoded as JwtPayload).userId
         return next()
