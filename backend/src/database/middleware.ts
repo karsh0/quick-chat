@@ -3,16 +3,16 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { JWT_SECRET } from "./config";
 
 export function userMiddleware(req: Request,res: Response,next: NextFunction){
-    const token = req.headers.token;
+    const token = req.headers["token"];
     if(!token){
         console.log("token not found")
         return;
     }
-    const decoded = jwt.verify((token as string), JWT_SECRET);
+    const decoded = jwt.verify(token as string, JWT_SECRET);
+    console.log(decoded)
     if((decoded as JwtPayload).userId){
-        //@ts-ignore
-        req.userId = decoded.userId
-        next()
+        req.userId = (decoded as JwtPayload).userId
+        return next()
     }
     console.log("failed in middleware")
     return;
