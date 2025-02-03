@@ -1,11 +1,11 @@
 import WebSocket, { WebSocketServer } from "ws"
 import http from "http"
 import express from "express"
-import { userModel } from "./database/db";
+import { roomModel, userModel } from "./database/db";
 import { userMiddleware } from "./database/middleware";
 import { JWT_SECRET, SignupType } from "./database/config";
 import router from "./database/routes/user";
-import jwt from "jsonwebtoken"
+import jwt, { JwtPayload } from "jsonwebtoken"
 import cors from "cors"
 
 const app = express()
@@ -14,34 +14,70 @@ const server = http.createServer(app); // Create HTTP server
 const wss = new WebSocketServer({server},()=>
 console.log("server listening at port 8080"))
 
-interface Users{
+interface User{
     socket: WebSocket,
-    username: string,
-    roomId: string
+    rooms: string[],
+    userId: string
 }
 
-let allUsers: Users[] = []
+let users: User[] = []
 
-wss.on("connection", (socket)=>{
+function checkUser(token: string): string | null{
+    const verifiedToken = jwt.verify(token, JWT_SECRET);
+
+    if(typeof verifiedToken === "string"){
+        return null
+    }
+    if(!verifiedToken || !verifiedToken.userId){
+        console.log("token validation failed")
+        return null
+    }
+    return verifiedToken.userId
+}
+
+wss.on("connection", (socket, request)=>{
+
+    const url = request.url;
+    if(!url){
+        return
+    }
+    const queryParams = new URLSearchParams(url.split('?')[1])
+    const token = queryParams.get("token") ?? ""
+
+    //verify the token
+    const userId = checkUser(token)
+
+    if(!userId){
+        socket.close()
+        return;
+    }
+
     socket.on("message", (message)=>{
         const parsedMessage = JSON.parse(message as unknown as string)
         if(parsedMessage.type === "JOIN_ROOM"){
-            allUsers.push({
+            users.push({
                 socket,
-                username: parsedMessage.payload.username,
-                roomId: parsedMessage.payload.roomId
+                userId,
+                rooms: []
 
             })
         }
 
         if(parsedMessage.type === "CHAT"){
-            const user = allUsers.find((u) => u.socket == socket);
-            const rooms = allUsers.filter(u => u.roomId == user?.roomId)
-            rooms.map(room => room.socket.send(parsedMessage.payload.message))
+            const {roomId, message} = parsedMessage;
+
+            users.forEach(u =>{
+                if(u.rooms.includes(roomId)){
+                    u.socket.send(JSON.stringify({
+                        type:"CHAT",
+                        message,
+                        roomId
+                    }))
+                }
+            })
         }
     })
 })
-
 
 //HTTP
 
@@ -76,21 +112,24 @@ app.post('/signin', async (req,res)=>{
     })
 })
 
-app.get('/dashboard', userMiddleware, async(req,res)=>{
-    const user = await userModel.findOne({_id: req.userId});
-    res.json({
-        user
-    })
+let globalRoomId = 0;
+
+app.post('/room', userMiddleware, async (req,res)=>{
+    const {slug} = req.body;
+    try{
+
+        const room = await roomModel.create({
+            roomId: globalRoomId++,
+            slug,
+            AdminId: req.userId
+        })
+        res.json({
+            roomId: room.roomId
+        })
+    }catch(e){
+        console.log(e)
+    }
 })
-
-app.get('/bulk', userMiddleware, async(req,res)=>{
-    const users = (await userModel.find()).filter((u) => u._id.toString() !== req.userId);
-
-    res.json({
-        users
-    })
-})
-
 
 server.listen(3000, ()=>{
     console.log("http running on port 3000")
