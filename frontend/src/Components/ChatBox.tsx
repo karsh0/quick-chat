@@ -7,7 +7,7 @@ import { useSocket } from "../useSocket";
 export function ChatBox({ selectedUser, user }: any) {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<string[]>([]);
-  const roomId = '1';
+  const roomId = '1'; //FIX: hardcoded 
 
   
   const socket = useSocket()
@@ -23,7 +23,7 @@ export function ChatBox({ selectedUser, user }: any) {
         })
       );
 
-      
+
       socket.send(
         JSON.stringify({
           type: "CHAT",

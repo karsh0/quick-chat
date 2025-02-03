@@ -5,7 +5,7 @@ import { roomModel, userModel } from "./database/db";
 import { userMiddleware } from "./database/middleware";
 import { JWT_SECRET, SignupType } from "./database/config";
 import router from "./database/routes/user";
-import jwt, { JwtPayload } from "jsonwebtoken"
+import jwt from "jsonwebtoken"
 import cors from "cors"
 
 const app = express()
@@ -55,12 +55,8 @@ wss.on("connection", (socket, request)=>{
     socket.on("message", (message)=>{
         const parsedMessage = JSON.parse(message as unknown as string)
         if(parsedMessage.type === "JOIN_ROOM"){
-            users.push({
-                socket,
-                userId,
-                rooms: []
-
-            })
+            const user = users.find(u => u.socket === socket);
+            user?.rooms.push(parsedMessage.roomId)
         }
 
         if(parsedMessage.type === "CHAT"){
