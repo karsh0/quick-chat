@@ -51,12 +51,24 @@ wss.on("connection", (socket, request)=>{
         socket.close()
         return;
     }
+    console.log(users)
+
+    users.push({
+        socket,
+        userId,
+        rooms: []
+    })
+    console.log(users)
+
 
     socket.on("message", (message)=>{
         const parsedMessage = JSON.parse(message as unknown as string)
         if(parsedMessage.type === "JOIN_ROOM"){
             const user = users.find(u => u.socket === socket);
             user?.rooms.push(parsedMessage.roomId)
+            socket.send(JSON.stringify({
+                message: `${user?.userId} Joined the room`
+            }))
         }
 
         if(parsedMessage.type === "CHAT"){
@@ -76,7 +88,6 @@ wss.on("connection", (socket, request)=>{
 })
 
 //HTTP
-
 
 app.use(express.json())
 app.use('/user', router)
@@ -115,7 +126,7 @@ app.post('/room', userMiddleware, async (req,res)=>{
     try{
 
         const room = await roomModel.create({
-            roomId: globalRoomId++,
+            roomId: (globalRoomId++).toString(),
             slug,
             AdminId: req.userId
         })
