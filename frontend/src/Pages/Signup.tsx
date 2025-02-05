@@ -28,7 +28,7 @@ export function SignUp() {
 
   return (
     <div>
-      <h2>Sign In</h2>
+      <h2>Sign Up</h2>
       <form onSubmit={handleSubmit}>
         <input
           type="username"
@@ -40,7 +40,7 @@ export function SignUp() {
           placeholder="Enter your password"
           ref={passwordRef}
         />
-        <button type="submit">Sign In</button>
+        <button type="submit">Sign Up</button>
       </form>
     </div>
   );

@@ -3,12 +3,15 @@ import { CreateRoomModal } from "./CreateRoomModal";
 import axios from "axios";
 import { BACKEND_URL } from "../config";
 import { useNavigate } from "react-router-dom";
+import { useSocket } from "../hooks/useSocket";
 
 
-export function Dashboard({socket, loading}:{socket: WebSocket | null, loading: Boolean}){
+export function Dashboard(){
     const [modal, setModal] = useState<Boolean>(false)
     const inputRef = useRef<HTMLInputElement | null>(null)
     const navigate = useNavigate()
+    const {socket, loading} = useSocket();
+
 
     async function JoinRoom(){
         const slug = inputRef.current?.value;

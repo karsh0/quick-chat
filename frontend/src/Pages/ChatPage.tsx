@@ -1,13 +1,16 @@
 import axios from "axios"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import { useParams } from "react-router-dom"
 import { BACKEND_URL } from "../config"
+import { useSocket } from "../hooks/useSocket";
 
-export  function ChatPage({socket, loading}:{socket: WebSocket | null, loading: Boolean}){
+export  function ChatPage(){
     const { slug } = useParams()
     const inputRef = useRef<HTMLInputElement | null>(null)
     const roomIdRef = useRef<Number | null>(null)
-    const [messages, setMessages] = useState<string[]>(['hii'])
+
+    const {socket, loading} = useSocket()
+
     useEffect(()=>{
         async function main(){
             const response = await axios.get(`${BACKEND_URL}/room/${slug}`)
@@ -44,9 +47,7 @@ export  function ChatPage({socket, loading}:{socket: WebSocket | null, loading: 
         <br/>
         <span>Room name : {slug}</span>
         <div>
-            {messages.map((m: any)=>{
-                return <span>{m.message}</span>
-            })}
+       
         </div>
         <input type="text" placeholder="Start you conversation" ref={inputRef}/>
         <button onClick={SendMessage}>SEND</button>

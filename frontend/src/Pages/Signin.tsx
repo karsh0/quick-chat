@@ -21,7 +21,7 @@ export function SignIn() {
         username, password
     })
     localStorage.setItem('token', response.data.token)
-    navigate('/chat')
+    navigate('/dashboard')
   };
 
   return (
