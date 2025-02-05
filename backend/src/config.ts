@@ -5,11 +5,6 @@ export const SignupType = z.object({
     password: z.string()
 })
 
-export const SigninType = z.object({
-    username: z.string(),
-    password: z.string()
-})
-
 declare global {
   namespace Express {
     interface Request {

@@ -1,11 +1,9 @@
 import WebSocket, { WebSocketServer } from "ws"
 import http from "http"
 import express from "express"
-import { userMiddleware } from "./middleware";
-import { SignupType } from "./config";
 import jwt from "jsonwebtoken"
 import cors from "cors"
-import { PrismaClient } from "@prisma/client";
+import router from "./router";
 require('dotenv').config()
 
 const app = express()
@@ -20,12 +18,10 @@ interface User{
     userId: string
 }
 
-let users: User[] = []
-
-const JWT_SECRET = process.env.JWT_SECRET
+let users: User[] = []  
 
 function checkUser(token: string): string | null{
-    const verifiedToken = jwt.verify(token, JWT_SECRET || "");
+    const verifiedToken = jwt.verify(token, process.env.JWT_SECRET || "");
 
     if(typeof verifiedToken === "string"){
         return null
@@ -46,7 +42,6 @@ wss.on("connection", (socket, request)=>{
     const queryParams = new URLSearchParams(url.split('?')[1])
     const token = queryParams.get("token") ?? ""
 
-    //verify the token
     const userId = checkUser(token)
 
     if(!userId){
@@ -91,67 +86,9 @@ wss.on("connection", (socket, request)=>{
 
 //HTTP
 
-const client = new PrismaClient()
-
 app.use(express.json())
 app.use(cors())
-
-app.post('/signup', async (req,res)=>{
-    const parsedData = SignupType.safeParse(req.body)
-    if(!parsedData.success){
-        res.json({
-            message:"Invalid inputs"
-        })
-        return;
-    }
-    await client.user.create({
-       data:{
-            username: parsedData.data.username,
-            password: parsedData.data.password
-       }
-    })
-    res.json({
-        message: "user signup success"
-    })
-})
-
-app.post('/signin', async (req,res)=>{
-    const parsedData = SignupType.safeParse(req.body)
-    const user = await client.user.findFirst({
-        where:{
-            username: parsedData.data?.username
-        }
-    })
-    if(!user){
-        console.log("user not found")
-        return;
-    }
-    const token = jwt.sign({userId: user.id.toString()}, JWT_SECRET || "")
-
-    res.json({
-        message: "user signup success",
-        token
-    })
-})
-
-
-app.post('/room', userMiddleware, async (req,res)=>{
-    const {slug} = req.body;
-    try{
-
-        const room = await client.room.create({
-           data:{
-                slug,
-                adminId: req.userId
-           }
-        })
-        res.json({
-            roomId: room.id
-        })
-    }catch(e){
-        console.log(e)
-    }
-})
+app.use('/', router)
 
 server.listen(3000, ()=>{
     console.log("http running on port 3000")
