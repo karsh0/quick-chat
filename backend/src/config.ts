@@ -1,8 +1,11 @@
 import z from "zod"
 
-export const JWT_SECRET = "1213123"
-
 export const SignupType = z.object({
+    username: z.string(),
+    password: z.string()
+})
+
+export const SigninType = z.object({
     username: z.string(),
     password: z.string()
 })

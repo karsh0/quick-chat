@@ -1,12 +1,12 @@
 import WebSocket, { WebSocketServer } from "ws"
 import http from "http"
 import express from "express"
-import { roomModel, userModel } from "./database/db";
-import { userMiddleware } from "./database/middleware";
-import { JWT_SECRET, SignupType } from "./database/config";
-import router from "./database/routes/user";
+import { userMiddleware } from "./middleware";
+import { SignupType } from "./config";
 import jwt from "jsonwebtoken"
 import cors from "cors"
+import { PrismaClient } from "@prisma/client";
+require('dotenv').config()
 
 const app = express()
 const server = http.createServer(app); // Create HTTP server
@@ -22,8 +22,10 @@ interface User{
 
 let users: User[] = []
 
+const JWT_SECRET = process.env.JWT_SECRET
+
 function checkUser(token: string): string | null{
-    const verifiedToken = jwt.verify(token, JWT_SECRET);
+    const verifiedToken = jwt.verify(token, JWT_SECRET || "");
 
     if(typeof verifiedToken === "string"){
         return null
@@ -89,15 +91,24 @@ wss.on("connection", (socket, request)=>{
 
 //HTTP
 
+const client = new PrismaClient()
+
 app.use(express.json())
-app.use('/user', router)
 app.use(cors())
 
 app.post('/signup', async (req,res)=>{
-    const {username, password} = SignupType.parse(req.body)
-    await userModel.create({
-        username,
-        password
+    const parsedData = SignupType.safeParse(req.body)
+    if(!parsedData.success){
+        res.json({
+            message:"Invalid inputs"
+        })
+        return;
+    }
+    await client.user.create({
+       data:{
+            username: parsedData.data.username,
+            password: parsedData.data.password
+       }
     })
     res.json({
         message: "user signup success"
@@ -105,13 +116,17 @@ app.post('/signup', async (req,res)=>{
 })
 
 app.post('/signin', async (req,res)=>{
-    const {username} = req.body
-    const user = await userModel.findOne({username})
+    const parsedData = SignupType.safeParse(req.body)
+    const user = await client.user.findFirst({
+        where:{
+            username: parsedData.data?.username
+        }
+    })
     if(!user){
         console.log("user not found")
         return;
     }
-    const token = jwt.sign({userId: user._id.toString()}, JWT_SECRET)
+    const token = jwt.sign({userId: user.id.toString()}, JWT_SECRET || "")
 
     res.json({
         message: "user signup success",
@@ -119,19 +134,19 @@ app.post('/signin', async (req,res)=>{
     })
 })
 
-let globalRoomId = 0;
 
 app.post('/room', userMiddleware, async (req,res)=>{
     const {slug} = req.body;
     try{
 
-        const room = await roomModel.create({
-            roomId: (globalRoomId++).toString(),
-            slug,
-            AdminId: req.userId
+        const room = await client.room.create({
+           data:{
+                slug,
+                adminId: req.userId
+           }
         })
         res.json({
-            roomId: room.roomId
+            roomId: room.id
         })
     }catch(e){
         console.log(e)

@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { JWT_SECRET } from "./config";
+require('dotenv').config()
 
 export function userMiddleware(req: Request,res: Response,next: NextFunction){
     const token = req.headers["token"];
@@ -8,7 +8,7 @@ export function userMiddleware(req: Request,res: Response,next: NextFunction){
         console.log("token not found")
         return;
     }
-    const decoded = jwt.verify(token as string, JWT_SECRET);
+    const decoded = jwt.verify(token as string, process.env.JWT_SECRET || "");
     if((decoded as JwtPayload).userId){
         req.userId = (decoded as JwtPayload).userId
         return next()
