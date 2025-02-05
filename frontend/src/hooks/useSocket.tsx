@@ -13,6 +13,9 @@ export function useSocket(){
             setSocket(ws)
             setLoading(false)
         }
+
+  
+       
     },[])
 
     return {socket, loading}

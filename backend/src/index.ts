@@ -8,7 +8,6 @@ require('dotenv').config()
 
 const app = express()
 const server = http.createServer(app); // Create HTTP server
-
 const wss = new WebSocketServer({server},()=>
 console.log("server listening at port 8080"))
 
@@ -32,6 +31,8 @@ function checkUser(token: string): string | null{
     }
     return verifiedToken.userId
 }
+
+
 
 wss.on("connection", (socket, request)=>{
 
@@ -68,11 +69,10 @@ wss.on("connection", (socket, request)=>{
 
         if(parsedMessage.type === "CHAT"){
             const {roomId, message} = parsedMessage;
-
             users.forEach(u =>{
                 if(u.rooms.includes(roomId)){
                     u.socket.send(JSON.stringify({
-                        type:"CHAT",
+                        type:"NEW_MESSAGE",
                         message,
                         roomId
                     }))
