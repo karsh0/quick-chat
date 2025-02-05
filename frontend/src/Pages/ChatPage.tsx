@@ -1,75 +1,54 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { Contact } from "../Components/Contact";
-import { ChatBox } from "../Components/ChatBox";
-import { useSocket } from "../useSocket";
+import axios from "axios"
+import { useEffect, useRef, useState } from "react"
+import { useParams } from "react-router-dom"
+import { BACKEND_URL } from "../config"
 
-interface User {
-  username: string;
-  roomId: string;
-}
+export  function ChatPage({socket, loading}:{socket: WebSocket | null, loading: Boolean}){
+    const { slug } = useParams()
+    const inputRef = useRef<HTMLInputElement | null>(null)
+    const roomIdRef = useRef<Number | null>(null)
+    const [messages, setMessages] = useState<string[]>(['hii'])
+    useEffect(()=>{
+        async function main(){
+            const response = await axios.get(`${BACKEND_URL}/room/${slug}`)
+            roomIdRef.current = Number(response.data.roomId); 
+            const messageArray = await axios.get(`${BACKEND_URL}/chat/${roomIdRef.current}`)
+            console.log(messageArray.data)
+        }
+        main()
+    },[])
 
-function ChatPage() {
-  const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  
-  useEffect(() => {
-    axios.get("http://localhost:3000/dashboard", {
-      headers: { token: localStorage.getItem("token") },
-    }).then((response) => setUser(response.data.user));
 
-    axios.get("http://localhost:3000/bulk", {
-      headers: { token: localStorage.getItem("token") },
-    }).then((response) => setAllUsers(response.data.users));
-  }, []);
+    async function SendMessage(){
+        const message = inputRef.current?.value;
 
-  return (
-    <div style={styles.container}>
-      <div style={styles.usersList}>
-        <h3>Users</h3>
-        {allUsers.map((user, index) => (
-          <button key={user.roomId || index} style={styles.userButton} onClick={() => {
-            setSelectedUser(user)}
-            
-            }>
-            {user.username}
-          </button>
-        ))}
-      </div>
-
-      <div style={styles.chatBox}>
-        {selectedUser ? <ChatBox selectedUser={selectedUser} user={user} /> : <p>Select a user to chat</p>}
-      </div>
+        const response = await axios.post(`${BACKEND_URL}/chat/${roomIdRef.current}`,{
+            message,
+        },{
+            headers:{
+                token: localStorage.getItem('token')
+            }
+        })
+        if(socket && !loading){
+            socket.send(JSON.stringify({
+                type: "CHAT",
+                roomId: roomIdRef.current
+            }))
+        }
+        console.log(response)
+        
+    }
+    
+    return <div>
+        Chat page
+        <br/>
+        <span>Room name : {slug}</span>
+        <div>
+            {messages.map((m: any)=>{
+                return <span>{m.message}</span>
+            })}
+        </div>
+        <input type="text" placeholder="Start you conversation" ref={inputRef}/>
+        <button onClick={SendMessage}>SEND</button>
     </div>
-  );
 }
-
-export default ChatPage;
-
-const styles = {
-  container: {
-    display: "flex",
-    height: "90vh",
-    border: "1px solid #ddd",
-  },
-  usersList: {
-    width: "30%",
-    borderRight: "1px solid #ddd",
-    padding: "20px",
-  },
-  userButton: {
-    display: "block",
-    width: "100%",
-    padding: "10px",
-    marginBottom: "10px",
-    cursor: "pointer",
-    background: "#f4f4f4",
-    border: "none",
-    textAlign: "left" as const,
-  },
-  chatBox: {
-    width: "70%",
-    padding: "20px",
-  },
-};
