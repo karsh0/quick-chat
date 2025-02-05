@@ -85,6 +85,24 @@ router.get('/room/:slug', async(req,res)=>{
     })
 })
 
+router.post('/chat/:roomId', userMiddleware, async(req,res)=>{
+    const roomId = Number(req.params.roomId);
+    const { message } = req.body;
+
+    const user = await client.chat.create({
+        data:{
+            message,
+            roomId,
+            userId: req.userId
+        }        
+    })
+
+    res.json({
+        user
+    })
+})
+
+
 router.get('/chat/:roomId', async(req, res)=>{
     const roomId = Number(req.params.roomId);
 

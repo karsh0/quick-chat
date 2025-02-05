@@ -48,14 +48,12 @@ wss.on("connection", (socket, request)=>{
         socket.close()
         return;
     }
-    console.log(users)
 
     users.push({
         socket,
         userId,
         rooms: []
     })
-    console.log(users)
 
 
     socket.on("message", (message)=>{
