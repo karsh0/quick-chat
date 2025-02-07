@@ -14,7 +14,7 @@ console.log("server listening at port 8080"))
 interface User{
     socket: WebSocket,
     rooms: string[],
-    userId: string
+    username: string
 }
 
 let users: User[] = []  
@@ -25,11 +25,11 @@ function checkUser(token: string): string | null{
     if(typeof verifiedToken === "string"){
         return null
     }
-    if(!verifiedToken || !verifiedToken.userId){
+    if(!verifiedToken || !verifiedToken.username){
         console.log("token validation failed")
         return null
     }
-    return verifiedToken.userId
+    return verifiedToken.username
 }
 
 
@@ -43,16 +43,16 @@ wss.on("connection", (socket, request)=>{
     const queryParams = new URLSearchParams(url.split('?')[1])
     const token = queryParams.get("token") ?? ""
 
-    const userId = checkUser(token)
+    const username = checkUser(token)
 
-    if(!userId){
+    if(!username){
         socket.close()
         return;
     }
 
     users.push({
         socket,
-        userId,
+        username,
         rooms: []
     })
 
@@ -63,7 +63,7 @@ wss.on("connection", (socket, request)=>{
             const user = users.find(u => u.socket === socket);
             user?.rooms.push(parsedMessage.roomId)
             socket.send(JSON.stringify({
-                message: `${user?.userId} Joined the room`
+                message: `${user?.username} Joined the room`
             }))
         }
 
@@ -75,6 +75,7 @@ wss.on("connection", (socket, request)=>{
                         type:"NEW_MESSAGE",
                         message,
                         roomId,
+                        username
                     }))
                 }
             })

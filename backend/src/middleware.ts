@@ -9,8 +9,8 @@ export function userMiddleware(req: Request,res: Response,next: NextFunction){
         return;
     }
     const decoded = jwt.verify(token as string, process.env.JWT_SECRET || "");
-    if((decoded as JwtPayload).userId){
-        req.userId = (decoded as JwtPayload).userId
+    if((decoded as JwtPayload).username){
+        req.username = (decoded as JwtPayload).username
         return next()
     }
     console.log("failed in middleware")

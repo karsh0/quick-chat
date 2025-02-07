@@ -38,7 +38,7 @@ router.post('/signin', async (req,res)=>{
         console.log("user not found")
         return;
     }
-    const token = jwt.sign({userId: user.id.toString()}, JWT_SECRET || "")
+    const token = jwt.sign({username: user.username.toString()}, JWT_SECRET || "")
 
     res.json({
         message: "user signup success",
@@ -54,7 +54,7 @@ router.post('/room', userMiddleware, async (req,res)=>{
         const room = await client.room.create({
            data:{
                 slug,
-                adminId: req.userId
+                username: req.username
            }
         })
         res.json({
@@ -93,7 +93,7 @@ router.post('/chat/:roomId', userMiddleware, async(req,res)=>{
         data:{
             message,
             roomId,
-            userId: req.userId
+            username: req.username
         }        
     })
 

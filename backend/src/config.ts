@@ -8,7 +8,7 @@ export const SignupType = z.object({
 declare global {
   namespace Express {
     interface Request {
-      userId: string
+      username: string
     }
   }
 }
