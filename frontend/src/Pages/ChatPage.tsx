@@ -58,6 +58,7 @@ export  function ChatPage({socket, loading}:{socket: WebSocket | null, loading: 
         <span className="text-3xl font-semibold">Room name : {slug}</span>
         <div className="text-white border border-white rounded-xl p-6 h-2/3 w-96 relative">
         <div className="flex flex-col space-y-2">
+            {JSON.stringify(messages)}
                     {messages.map((m, index) => (
                         <div key={index} className="bg-gray-800 p-2 rounded-lg w-max max-w-xs">
                             {m}

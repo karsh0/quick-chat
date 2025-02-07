@@ -74,7 +74,7 @@ wss.on("connection", (socket, request)=>{
                     u.socket.send(JSON.stringify({
                         type:"NEW_MESSAGE",
                         message,
-                        roomId
+                        roomId,
                     }))
                 }
             })
