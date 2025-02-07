@@ -11,15 +11,13 @@ export function CreateRoomModal(){
     async function CreateRoom(){
         const slug = inputRef.current?.value;
 
-        const response = await axios.post(`${BACKEND_URL}/room`, {
+        await axios.post(`${BACKEND_URL}/room`, {
            slug
         },{
             headers:{
                 token: localStorage.getItem('token')
             }
         })
-        console.log(response.data)
-        alert(`roomId: ${response.data.roomId}`)
         navigate(`/room/${slug}`)
     }
 

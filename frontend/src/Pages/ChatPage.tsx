@@ -23,16 +23,13 @@ export  function ChatPage({socket, loading}:{socket: WebSocket | null, loading: 
 
     socket.onmessage = (ev) =>{
         const data = JSON.parse(ev.data)
-        console.log(data)
         if(data.type == "NEW_MESSAGE"){
-            console.log(data.message)
             setMessages((prev) => [...prev, data.message])
         }
     }
 
     async function SendMessage(){
         const message = inputRef.current?.value;
-        console.log(roomIdRef.current)
 
         //FIX: Lag due to posting data in db, find easier way
         // try{

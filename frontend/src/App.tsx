@@ -5,6 +5,7 @@ import { SignUp } from "./Pages/Signup";
 import { Dashboard } from "./Pages/Dashboard";
 import { ChatPage } from "./Pages/ChatPage";
 import { useSocket } from "./hooks/useSocket";
+import { Landing } from "./Pages/Landing";
 
 function App() {
 
@@ -12,6 +13,7 @@ function App() {
 
   return <BrowserRouter>
   <Routes>
+    <Route path="/" element={<Landing/>} />
     <Route path="/signin" element={<SignIn/>} />
     <Route path="/signup" element={<SignUp/>} />
     <Route path="/dashboard" element={<Dashboard socket={socket} loading={loading}/>} />

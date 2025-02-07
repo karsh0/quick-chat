@@ -13,8 +13,6 @@ export function useSocket(){
             setSocket(ws)
             setLoading(false)
         }
-
-  
        
     },[])
 
