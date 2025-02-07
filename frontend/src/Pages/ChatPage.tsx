@@ -54,14 +54,20 @@ export  function ChatPage({socket, loading}:{socket: WebSocket | null, loading: 
         
     }
     
-    return <div>
-        Chat page
-        <br/>
-        <span>Room name : {slug}</span>
-        <div>
-       {messages.map((m, index) =>  <span key={index}>{m}</span>)}
+    return <div className="bg-gradient-to-br from-gray-900  to-black w-screen h-screen flex flex-col gap-5 text-white justify-center items-center">
+        <span className="text-3xl font-semibold">Room name : {slug}</span>
+        <div className="text-white border border-white rounded-xl p-6 h-2/3 w-96 relative">
+        <div className="flex flex-col space-y-2">
+                    {messages.map((m, index) => (
+                        <div key={index} className="bg-gray-800 p-2 rounded-lg w-max max-w-xs">
+                            {m}
+                        </div>
+                    ))}
         </div>
-        <input type="text" placeholder="Start you conversation" ref={inputRef}/>
-        <button onClick={SendMessage}>SEND</button>
+        <div className="flex max-w-full absolute bottom-4">
+        <input type="text" className="w-64 px-5 rounded-lg text-black rounded-r-none" placeholder="Start you conversation" ref={inputRef}/>
+        <button onClick={SendMessage} className="px-4 py-2 rounded-lg rounded-l-none bg-blue-600 hover:bg-blue-500 transition-all text-white text-lg shadow-lg">SEND</button>
+        </div>
+        </div>
     </div>
 }
